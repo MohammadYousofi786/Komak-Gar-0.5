@@ -1,0 +1,189 @@
+?<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title> کمک گار | سیستم دیجیتال و هوشمند خیاطی یوسفی | نسخه: 0.2</title>
+
+<link rel="stylesheet" href="../css/design.css">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/style-tailor.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="container header-inner">
+    <div class="brand">
+      <img src="../assets/images/logo (1).png" alt="لوگوی کمک گار" class="brand-logo">
+      <div class="brand-text">
+        <h1>کمک گار</h1>
+        <p>سیستم دیجیتال خیاطی یوسفی</p>
+      </div>
+    </div>
+    <nav class="navigation" aria-label="منوی اصلی">
+      <ul class="main-nav">
+        <li><a href="project.html#home">خانه</a></li>
+        <li><a href="project.html#products">فروشگاه</a></li>
+        <li><a href="Yousofi-tailoring-system.html">سیستم خیاطی یوسفی</a></li>
+      </ul>
+      <ul class="part-nav">
+        <li><a href="project.html#about-us">درباره ما</a></li>
+        <li><a href="project.html#contact">تماس با ما</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<div class="dashboard-container">
+  <div class="sidebar">
+    <div class="logo-area">
+      <h2>✂️ اتوماسیون ارشد خیاطی یوسفی</h2>
+      <small style="color: var(--text-secondary)">مدیریت هوشمند الگو، گراف و آرشیو مشتریان</small>
+    </div>
+    <div class="tab-buttons">
+      <button id="tabMen" class="tab-btn active-men" onclick="switchMode('men')">مدل مردانه</button>
+      <button id="tabWomen" class="tab-btn" onclick="switchMode('women')">مدل زنانه</button>
+    </div>
+    <div class="input-grid">
+      <div class="form-group">
+        <label>نام و ولد مشتری</label>
+        <input id="custName" type="text" placeholder=" محمد یوسفی">
+      </div>
+      <div class="form-group">
+        <label>شماره تماس</label>
+        <input id="custPhone" type="text" placeholder="0700000000" style="text-align: left;">
+      </div>
+      <div class="form-group">
+        <label id="lblQad">قد پیراهن / مانتو</label>
+        <input id="qadPirahan" type="number" oninput="runEngine()" placeholder="40">
+        <span class="unit-badge">اینچ</span>
+      </div>
+      <div class="form-group">
+        <label id="lblQadBottom">قد تنبان / ایزار / دامن</label>
+        <input id="qadEzar" type="number" oninput="runEngine()" placeholder="36">
+        <span class="unit-badge">اینچ</span>
+      </div>
+      <div class="form-group">
+        <label>آستین</label>
+        <input id="astin" type="number" oninput="runEngine()" placeholder="21">
+        <span class="unit-badge">اینچ</span>
+      </div>
+      <div class="form-group">
+        <label>شانه</label>
+        <input id="shana" type="number" oninput="runEngine()" placeholder="18">
+        <span class="unit-badge">اینچ</span>
+      </div>
+      <div class="form-group">
+        <label>بغل (دور سینه)</label>
+        <input id="baghal" type="number" oninput="runEngine()" placeholder="32">
+        <span class="unit-badge">اینچ</span>
+      </div>
+      <div class="form-group">
+        <label>فرم فیزیکی بدن</label>
+        <select id="bodyStyle" onchange="runEngine()">
+          <option value="laghar">لاغر اندام (اسلیم فیت)</option>
+          <option value="motavaset" selected>متوسط / استاندارد</option>
+          <option value="chagh">چاق / درشت هیکل</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-primary" style="width: 100%;" onclick="saveCustomer()">💾 ثبت و آرشیو اندازه مشتری</button>
+  </div>
+  <div class="main-content">
+    <div class="stats-row">
+      <div class="stat-card">
+        <div>
+          <label>کل مشتریان ثبت شده</label>
+          <div class="stat-num" id="statTotal">0</div>
+        </div>
+        <div style="font-size: 30px;">👥</div>
+      </div>
+      <div class="stat-card">
+        <div>
+          <label>آخرین متد محاسباتی</label>
+          <div class="stat-num" style="font-size: 16px; color: var(--success); margin-top: 12px;">فرمول طلایی استادکار</div>
+        </div>
+        <div style="font-size: 30px;">�?️</div>
+      </div>
+      <div class="stat-card">
+        <div>
+          <label>وضعیت واحد سیستم</label>
+          <div class="stat-num" id="currentUnitDisplay" style="font-size: 18px; margin-top: 10px;">اینچ (Inch)</div>
+        </div>
+        <button class="btn-sec" onclick="toggleUnitSystem()" style="padding: 4px 8px; font-size: 11px;">تغییر واحد</button>
+      </div>
+    </div>
+    <div class="workspace-grid">
+      <div class="content-panel">
+        <div class="panel-header">
+          <span>🪡 ماتریکس الگو و فاکتور برش پارچه</span>
+          <button class="btn-sec" onclick="window.print()">🖨️ چاپ کارت اندازه</button>
+        </div>
+        <div class="output-grid">
+          <div class="output-box">
+            <label id="lblOutDaman">بر دامن پیراهن</label>
+            <div class="output-val" id="outBarDaman">-</div>
+          </div>
+          <div class="output-box">
+            <label id="lblOutBarEzar">بر ایزار (عرض تنبان)</label>
+            <div class="output-val" id="outBarEzar">-</div>
+          </div>
+          <div class="output-box">
+            <label id="lblOutKheshtak">خشتک / فاق</label>
+            <div class="output-val" id="outKheshtak">-</div>
+          </div>
+          <div class="output-box">
+            <label id="lblOutDahan">دهن ایزار (پاچه)</label>
+            <div class="output-val" id="outDahanEzar">-</div>
+          </div>
+          <div class="output-box">
+            <label>گولی یخن پیش روی</label>
+            <div class="output-val" id="outGoliP">-</div>
+          </div>
+          <div class="output-box">
+            <label>کنده آستین (جای آستین)</label>
+            <div class="output-val" id="outJayAstin">-</div>
+          </div>
+        </div>
+      </div>
+            <!-- این بخش را جایگزین باکس نمودار قبلی کنید -->
+      <div class="content-panel">
+          <div class="panel-header">📐 نقشه مهندسی برش (آفلاین و زنده)</div>
+          
+          <!-- باکس نگهدارنده نقشه -->
+          <div style="background: #1e293b; border-radius: 8px; padding: 10px; overflow: hidden; text-align: center;">
+              <canvas id="patternCanvas" width="350" height="450" style="background: #0f172a; border: 1px dashed #475569; border-radius: 6px; max-width: 100%;"></canvas>
+          </div>
+          
+          <div style="text-align: center; color: #94a3b8; font-size: 12px; margin-top: 8px;">
+              * نقشه فوق بر اساس مقیاس ۱:۱۰ و به صورت اتوماتیک با تغییر سایزها رسم می‌شود.
+          </div>
+      </div>
+    </div>
+    <div class="content-panel">
+      <div class="panel-header">
+        <span>📂 بانک اطلاعات و پرونده مشتریان کارگاه</span>
+        <button class="btn-sec" style="color: #ef4444; border-color: #ef4444;" onclick="clearAllData()">حذف کل بانک داده</button>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>نام مشتری</th>
+              <th>شماره تماس</th>
+              <th>نوع مدل</th>
+              <th>قد پیراهن</th>
+              <th>قد ایزار/دامن</th>
+              <th>عرض دامن</th>
+              <th>فاق/خشتک</th>
+              <th>عملیات</th>
+            </tr>
+          </thead>
+          <tbody id="customerTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../js/script.js"></script>
+</body>
+</html>
+

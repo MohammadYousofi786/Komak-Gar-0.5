@@ -1,0 +1,85 @@
+?<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>مدیریت سفارش‌ها | کمک گار</title>
+    <link rel="stylesheet" href="../css/design.css" />
+    <link rel="stylesheet" href="../css/style.css" />
+    <style>
+      .admin-shell { padding-block: 2rem 4rem; }
+      .admin-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+      .admin-table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); }
+      .admin-table { width: 100%; min-width: 850px; border-collapse: collapse; }
+      .admin-table th, .admin-table td { padding: 0.85rem 1rem; border-bottom: 1px solid var(--border); text-align: right; vertical-align: top; }
+      .admin-table th { background: var(--surface-soft); color: var(--primary); white-space: nowrap; }
+      .admin-table tr:last-child td { border-bottom: 0; }
+      .admin-table select { min-width: 150px; padding: 0.45rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); }
+      .order-products { margin: 0; padding-right: 1rem; }
+      .order-products li { margin-bottom: 0.25rem; }
+      .admin-empty, .admin-error { padding: 2rem; text-align: center; }
+      .admin-error { color: #b42318; }
+      .admin-status { color: var(--muted); font-size: 0.9rem; }
+      @media (max-width: 700px) { .admin-toolbar { align-items: stretch; flex-direction: column; } }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <div class="brand"><img src="../assets/images/logo (1).png" alt="لوگوی کمک گار" class="brand-logo" /><div class="brand-text"><h1>کمک گار</h1><p>مدیریت سفارش‌ها</p></div></div>
+        <nav class="navigation" aria-label="منوی مدیریت"><ul class="main-nav"><li><a href="project.html">بازگشت به فروشگاه</a></li></ul></nav>
+      </div>
+    </header>
+
+    <main class="container admin-shell">
+      <div class="section-head"><span class="badge">پنل مدیریت محلی</span><h2>سفارش‌های ثبت‌شده</h2></div>
+      <div class="admin-toolbar"><span class="admin-status" id="adminStatus">در حال دریافت سفارش‌ها...</span><button class="btn-primary" type="button" id="refreshOrders">به‌روزرسانی</button></div>
+      <div class="admin-table-wrap" id="ordersTable"><div class="admin-empty">در حال بارگذاری...</div></div>
+    </main>
+
+    <script>
+      const statuses = ['جدید', 'تأیید شد', 'در حال آماده‌سازی', 'ارسال شد', 'تکمیل شد', 'لغو شد'];
+      const paymentStatuses = ['در انتظار پرداخت', 'پرداخت شد', 'بازگشت داده شد'];
+      const table = document.getElementById('ordersTable');
+      const statusText = document.getElementById('adminStatus');
+      const money = (value) => `${Number(value).toLocaleString('fa-AF')} AFN`;
+      const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
+
+      async function loadOrders() {
+        statusText.textContent = 'در حال دریافت سفارش‌ها...';
+        try {
+          const response = await fetch('/api/orders');
+          if (!response.ok) throw new Error('دریافت سفارش‌ها انجام نشد.');
+          const orders = await response.json();
+          statusText.textContent = `${orders.length} سفارش`;
+          if (!orders.length) { table.innerHTML = '<div class="admin-empty">هنوز سفارشی ثبت نشده است.</div>'; return; }
+          table.innerHTML = `<table class="admin-table"><thead><tr><th>شماره</th><th>مشتری</th><th>محصولات</th><th>جمع کل</th><th>پرداخت</th><th>تحویل</th><th>تاریخ ثبت</th><th>وضعیت</th></tr></thead><tbody>${orders.slice().reverse().map((order) => `<tr><td dir="ltr">${escapeHtml(order.id)}</td><td><strong>${escapeHtml(order.name)}</strong><br /><span dir="ltr">${escapeHtml(order.phone)}</span><br />${escapeHtml(order.address)}</td><td><ul class="order-products">${order.items.map((item) => `<li>${escapeHtml(item.name)} × ${item.quantity}</li>`).join('')}</ul></td><td class="ltr">${money(order.total)}</td><td>${escapeHtml(order.paymentMethod || 'پرداخت هنگام تحویل')}<br /><select data-payment-order-id="${escapeHtml(order.id)}">${paymentStatuses.map((status) => `<option ${status === (order.paymentStatus || 'در انتظار پرداخت') ? 'selected' : ''}>${status}</option>`).join('')}</select></td><td dir="ltr">${order.deliveryDate ? escapeHtml(order.deliveryDate) : 'تعیین نشده'}</td><td dir="ltr">${new Date(order.createdAt).toLocaleString('fa-AF')}</td><td><select data-order-id="${escapeHtml(order.id)}">${statuses.map((status) => `<option ${status === order.status ? 'selected' : ''}>${status}</option>`).join('')}</select></td></tr>`).join('')}</tbody></table>`;
+          table.querySelectorAll('select[data-order-id]').forEach((select) => select.addEventListener('change', () => updateStatus(select)));
+          table.querySelectorAll('select[data-payment-order-id]').forEach((select) => select.addEventListener('change', () => updatePaymentStatus(select)));
+        } catch (error) { statusText.textContent = 'خطا'; table.innerHTML = `<div class="admin-error">${escapeHtml(error.message)}</div>`; }
+      }
+
+      async function updateStatus(select) {
+        select.disabled = true;
+        try {
+          const response = await fetch('/api/orders/status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: select.dataset.orderId, status: select.value }) });
+          if (!response.ok) throw new Error('تغییر وضعیت انجام نشد.');
+        } catch (error) { alert(error.message); await loadOrders(); }
+        select.disabled = false;
+      }
+
+      async function updatePaymentStatus(select) {
+        select.disabled = true;
+        try {
+          const response = await fetch('/api/orders/payment-status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: select.dataset.paymentOrderId, paymentStatus: select.value }) });
+          if (!response.ok) throw new Error('تغییر وضعیت پرداخت انجام نشد.');
+        } catch (error) { alert(error.message); await loadOrders(); }
+        select.disabled = false;
+      }
+
+      document.getElementById('refreshOrders').addEventListener('click', loadOrders);
+      loadOrders();
+    </script>
+  </body>
+</html>
+

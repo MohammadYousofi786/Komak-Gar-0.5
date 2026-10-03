@@ -1,0 +1,9 @@
+{
+  "name": "helpgar-local-store",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local backend for Help Gar store",
+  "scripts": {
+    "start": "node node/server.js"
+  }
+}
